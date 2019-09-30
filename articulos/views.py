@@ -136,7 +136,7 @@ class ArticuloViewSet(viewsets.ModelViewSet):
 				
 				if serializer.is_valid():
 					serializer.save(empresa_id=request.data['empresa_id'])				
-					return Structure.success_201('El usuario ha sido actualizado exitosamente.', serializer.data)
+					return Structure.success_201('El articulo ha sido actualizado exitosamente.', serializer.data)
 				else:
 
 					return Structure.fail('', serializer.errors)
@@ -150,6 +150,6 @@ class ArticuloViewSet(viewsets.ModelViewSet):
 				instance = self.get_object()
 				self.perform_destroy(instance)
 				serializer = self.get_serializer(instance)
-				return Structure.success_204('El usuario ha sido eliminado exitosamente.', serializer.data)
+				return Structure.success_204('El articulo ha sido eliminado exitosamente.', serializer.data)
 			except Exception as e:
 				return Structure.error_500()

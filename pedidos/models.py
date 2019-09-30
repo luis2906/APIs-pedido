@@ -12,8 +12,16 @@ class Estado(models.Model):
 	
 class Pedido(models.Model):
 
-	articulo = models.ForeignKey(Articulo, related_name="Pedido_articulo", on_delete=models.PROTECT)
 	cliente = models.ForeignKey(Cliente, related_name="Pedido_cliente", on_delete=models.PROTECT)
-	cantidad = models.IntegerField(max_length=255)
 	estado = models.ForeignKey(Estado, related_name="Pedido_estado", on_delete=models.PROTECT)
 	is_active = models.BooleanField(default=True)
+
+	def __str__(self):
+		return  "#"+str(self.id)+" - "+str(self.cliente) 
+
+class PedidoArticulo(models.Model):
+	pedido = models.ForeignKey(Pedido, related_name="PedidoArticulo_pedido", on_delete=models.PROTECT)
+	articulo = models.ForeignKey(Articulo, related_name="PedidoArticulo_articulo", on_delete=models.PROTECT)
+	cantidad = models.IntegerField(max_length=255)
+	is_active = models.BooleanField(default=True)
+

@@ -27,9 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -88,24 +86,13 @@ DATABASES = {
     #     'ENGINE': 'django.db.backends.sqlite3',
     #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     # },
-    # 'develop': {
-    #     'ENGINE': 'mysql.connector.django',
-	# 	'HOST': 'localhost',
-	# 	'NAME': 'ujueta',
-	# 	'USER': 'root',
-	# 	'PASSWORD': '',
-	# 	'PORT': '3306', 
-	# },
     'default': {
-        'ENGINE': 'sql_server.pyodbc',
-		'HOST': 'ujueta.database.windows.net',
+        'ENGINE': 'mysql.connector.django',
+		'HOST': 'localhost',
 		'NAME': 'ujueta',
-		'USER': 'ujueta-admin',
-		'PASSWORD': 'Ujuet1234567*',
-		'PORT': '1433', 
-        'OPTIONS' : {
-            'provider': 'SQLOLEDB',
-        }   
+		'USER': 'root',
+		'PASSWORD': '',
+		'PORT': '3306', 
 	},
 }
 # https://gist.github.com/aaugustin/9135842
@@ -161,13 +148,6 @@ CORS_ALLOW_METHODS = (
     'DELETE',
     'OPTIONS'
 )
-
-CORS_ORIGIN_WHITELIST = [
-    "https://example.com",
-    "https://sub.example.com",
-    "http://localhost:8080",
-    "http://127.0.0.1:9000"
-]
 
 
 # Static files (CSS, JavaScript, Images)

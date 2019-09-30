@@ -32,8 +32,9 @@ router.register(r'marcas', MarcaViewSet)
 from clientes.views import ClienteViewSet 
 router.register(r'clientes', ClienteViewSet)
 # pedidos.views
-from pedidos.views import PedidoViewSet,EstadoViewSet 
+from pedidos.views import PedidoViewSet,EstadoViewSet,PedidoArticuloViewSet 
 router.register(r'pedidos', PedidoViewSet)
+router.register(r'pedido-articulos', PedidoArticuloViewSet)
 router.register(r'estados', EstadoViewSet)
 
 

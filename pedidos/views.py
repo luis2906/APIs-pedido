@@ -13,9 +13,10 @@ import json
 
 
 # models
-from .models import Pedido, Estado
+from helpers.bulk_create_manage import BulkCreateManager
+from .models import Pedido, Estado,PedidoArticulo
 # serializers
-from .serializers import PedidoSerializer, EstadoSerializer
+from .serializers import PedidoSerializer, EstadoSerializer, PedidoArticuloSerializer
 
 # Create your views here.
 class PedidoViewSet(viewsets.ModelViewSet):
@@ -77,11 +78,16 @@ class PedidoViewSet(viewsets.ModelViewSet):
 				json_data = json.loads(request.body)
 				serializer = self.serializer_class(data=json_data,context={'request': request})
 				if serializer.is_valid():
-					serializer.save(articulo_id = json_data["articulo_id"], 
-									cliente_id = json_data["cliente_id"],
+					serializer.save(cliente_id = json_data["cliente_id"],
 									estado_id = json_data["estado_id"]
 									)
-					return Structure.success_201('El pedido ha sido registrado exitosamente.', serializer.data)
+				
+					bulk_mgr = BulkCreateManager(chunk_size=1)
+					for row in json_data["articulos"]:
+						bulk_mgr.add(PedidoArticulo(pedido_id=serializer.data['id'], articulo_id=row['id'], cantidad=row['cantidad'] ))
+					bulk_mgr.done()
+
+					return Structure.success_201('El pedido #{} ha sido registrado exitosamente.'.format(serializer.data["id"]), serializer.data)
 				else:
 					print(serializer.errors)
 					return Structure.fail('', serializer.errors)
@@ -180,3 +186,106 @@ class EstadoViewSet(viewsets.ModelViewSet):
 
 		except Exception as e:
 			return Structure.error_500()
+
+
+class PedidoArticuloViewSet(viewsets.ModelViewSet):
+
+	model = PedidoArticulo
+	queryset = model.objects.all()
+	serializer_class = PedidoArticuloSerializer
+	parser_classes=(FormParser, MultiPartParser)
+	nombre_modulo = 'PedidoArticulo.PedidoArticuloViewSet'
+
+	def retrieve(self,request,*args, **kwargs):
+		try:
+			instance = self.get_object()
+			serializer = self.get_serializer(instance)
+			return Structure.success_200('', serializer.data)	
+
+		except Exception as e:			
+			return Structure.error_400('No se encontraron registros')
+
+	def list(self, request, *args, **kwargs):
+		try:
+			queryset = super(PedidoArticuloViewSet, self).get_queryset()
+			page = self.request.query_params.get('page', None)
+			filter_data = self.request.query_params.get('filter_data', None)
+            # --------------------------------------------------------------
+			pedido_id = self.request.query_params.get('pedido_id',None)
+			articulo_id = self.request.query_params.get('articulo_id',True)
+			
+			qset=(~Q(id=0))
+			
+			if (filter_data or pedido_id or articulo_id):
+				if filter_data:
+					qset = qset & (Q(name__icontains = filter_data) )
+				if pedido_id:
+					qset = qset & (Q(pedido__id = pedido_id) )
+
+				if articulo_id:
+					qset = qset & (Q(articulo__id = articulo_id) )
+				
+				queryset = self.model.objects.filter(qset)
+
+			if page:						
+				pagination = self.paginate_queryset(queryset)			
+				if pagination is not None:
+					serializer = self.get_serializer(pagination, many=True)
+					return self.get_paginated_response(serializer.data)
+				
+			serializer = self.get_serializer(queryset,many=True)
+			return Structure.success_200('', serializer.data)
+
+		except Exception as e:
+			print(e)
+			return Structure.error_500()
+
+	def create(self, request, *args, **kwargs):
+		if request.method == 'POST':
+			try:
+
+				json_data = json.loads(request.body)
+				serializer = self.serializer_class(data=json_data,context={'request': request})
+				if serializer.is_valid():
+					serializer.save(pedido_id = json_data["pedido_id"], 
+									articulo_id = json_data["articulo_id"]
+									)
+					return Structure.success_201('El articulo ha sido registrado exitosamente.', serializer.data)
+				else:
+					print(serializer.errors)
+					return Structure.fail('', serializer.errors)
+			
+			except Exception as e:
+				print(e)
+				return Structure.error_500()
+
+	def update(self,request,*args,**kwargs):
+		if request.method == 'PUT':			
+			try:
+				partial = kwargs.pop('partial', False)
+				instance = self.get_object()
+				json_data = json.loads(request.body)
+				serializer = self.serializer_class(instance, data=json_data, context={'request': request}, partial=partial)
+				
+				if serializer.is_valid():
+					serializer.save(pedido_id = json_data["pedido_id"], 
+									articulo_id = json_data["articulo_id"]
+									)			
+					return Structure.success_201('El articulo ha sido actualizado exitosamente.', serializer.data)
+				else:
+
+					return Structure.fail('', serializer.errors)
+
+			except Exception as e:
+				return Structure.error_500()
+
+	def destroy(self,request,*args,**kwargs):
+		if request.method == 'DELETE':			
+			try:
+				instance = self.get_object()
+				self.perform_destroy(instance)
+				serializer = self.get_serializer(instance)
+				return Structure.success_204('El articulo ha sido eliminado exitosamente.', serializer.data)
+			except Exception as e:
+				return Structure.error_500()
+
